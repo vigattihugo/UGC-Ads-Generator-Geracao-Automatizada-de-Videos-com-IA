@@ -2,6 +2,11 @@
 
 > Pipeline de automação que transforma uma linha de planilha (produto + persona + contexto) em vídeos de anúncio estilo UGC (user-generated content) prontos para publicação, usando múltiplos modelos generativos de vídeo (Veo 3.1, Sora 2) orquestrados por agentes de IA.
 
+<img width="1487" height="1020" alt="image" src="https://github.com/user-attachments/assets/2865e6af-c042-47c3-a669-29b70bc9e03a" />
+
+<img width="1817" height="743" alt="image" src="https://github.com/user-attachments/assets/b484d4e7-515c-4953-a306-a9f28803f664" />
+
+
 ---
 
 ## Problema resolvido
