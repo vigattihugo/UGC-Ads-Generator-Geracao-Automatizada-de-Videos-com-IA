@@ -152,7 +152,3 @@ ugc-ads-generator/
 - **Dependência de agregador terceiro (KIE.ai)** — simplifica a integração, mas introduz um ponto único de falha e risco de disponibilidade/pricing fora do controle direto do pipeline.
 
 ---
-
-## Sobre o projeto
-
-Adaptado e documentado como parte do portfólio de automação e IA generativa aplicada a marketing de performance. Este fluxo partiu de um template público de automação com IA (n8n + KIE.ai) e foi revisado, documentado e corrigido — remoção de branding externo, correção de bugs de formatação JSON, e identificação de pontos de evolução para escala (LoRA, backoff exponencial, consolidação de prompts duplicados).
