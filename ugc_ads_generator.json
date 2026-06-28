@@ -1,0 +1,494 @@
+{
+  "name": "UGC Ads Generator — Veo & Sora",
+  "nodes": [
+
+    {
+      "parameters": { "rule": { "interval": [{}] } },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-352, -656],
+      "id": "78aa50ba-f902-4758-81a7-3b7c9a007f53",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.UGC_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": { "__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Sheet1" },
+        "filtersUI": {
+          "values": [{ "lookupColumn": "Status", "lookupValue": "Ready" }]
+        },
+        "options": { "returnFirstMatch": true }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [-192, -656],
+      "id": "dde42295-1ef8-46b7-8d48-00f631617d8d",
+      "name": "Buscar Próxima Tarefa (Status: Ready)",
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "vjJ9PbCDOkVNZZRJ", "name": "Google Sheets account" }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [
+                  { "id": "cf92e6e7-99a9-4d50-a750-d4311bf32ea8", "leftValue": "={{ $json.Model }}", "rightValue": "Veo 3.1", "operator": { "type": "string", "operation": "equals" } }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Veo"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [
+                  { "id": "24879280-7ab4-4dc7-8482-f427b001a20b", "leftValue": "={{ $json.Model }}", "rightValue": "Nano + Veo 3.1", "operator": { "type": "string", "operation": "equals" } }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Nano + Veo"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [
+                  { "id": "fcb76afb-810f-48ca-b8d1-ba8e1fa52634", "leftValue": "={{ $json.Model }}", "rightValue": "Sora 2", "operator": { "type": "string", "operation": "equals" } }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sora"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [-32, -672],
+      "id": "9ee3fc52-8e18-408e-b343-f21cb835ac33",
+      "name": "Roteamento por Estratégia (Model)"
+    },
+
+    // ─── ESTRATÉGIA A: VEO DIRETO ──────────────────────────────────────────────
+
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Product: {{ $('Buscar Próxima Tarefa (Status: Ready)').item.json.Product }}\n\nProduct ICP: {{ $('Buscar Próxima Tarefa (Status: Ready)').item.json.ICP }}\n\nProduct Features: {{ $('Buscar Próxima Tarefa (Status: Ready)').item.json['Product Features'] }}\n\nVideo Setting: {{ $('Buscar Próxima Tarefa (Status: Ready)').item.json['Video Setting'] }}\n\nReference Image Description: {{ $json.reference_description ?? 'N/A — using product photo directly as reference' }}",
+        "options": {
+          "systemMessage": "=# System Prompt: UGC Selfie Video Generation (8 Seconds) — Veo 3\n\n## Role\nYou are an **expert UGC video creator** optimizing prompts for **Veo 3.1**.\nYour task is to **generate a single text prompt for an AI video model**, based on:\n- The **product**\n- The **ideal customer profile (ICP)**\n- **Product features**\n- The **video setting**\n- An optional **reference image description** (used only when provided, for appearance/style matching)\n\n## Goal\nProduce a **realistic, spontaneous selfie-style video** filmed by an influencer using **one hand to hold the phone** and **one hand to hold or use the product**. The result must feel **natural, unfiltered, and human**. If a reference image description is provided, match the product's exact appearance, logo, and color described — without mentioning or linking the image itself. The phone or camera must **never appear** in the shot.\n\n---\n\n## Video Requirements\n\n### Subject & Framing\n- The subject represents the **ICP persona** — age, attire, overall vibe.\n- Selfie-style, handheld at **arm's length**, **vertical (9:16)** format.\n- Subject **faces the camera directly** while interacting with the product.\n- Subtle **camera shake** and **micro-movements** for authenticity.\n\n### Visual Style\n- Natural lighting, realistic environment matching the ICP's lifestyle (bedroom, gym, kitchen, car, outdoors).\n- Minor imperfections, realistic grain, slight exposure variation — avoid a polished studio look.\n- **Strictly avoid**: visible phones, selfie sticks, camera reflections, overlays, subtitles, watermarks, logos added by the AI, or anything artificial-looking.\n- Sharp focus on both subject and product; shallow depth of field for a cinematic, relatable feel.\n\n### Tone & Dialogue\n- 1–2 casual, conversational sentences about a real product feature.\n- Spontaneous, personal delivery — not scripted-sounding, not ad-like.\n- Example phrasing: \"I love how [feature] helps me [benefit].\"\n\n### Technical Specs\n- Duration: 8 seconds\n- Shot type: handheld, selfie-style\n- Orientation: vertical (9:16)\n- Lighting: natural\n- Audio: ambient background only — no music or voice-over\n\n---\n\n## Output Instructions\nReturn **only the final video generation prompt as plain text** — no explanation, no preamble, no markdown formatting, no code fences.\n\n### Example Output Prompt\n\"A natural, handheld selfie-style vertical video filmed by a young woman in her kitchen, holding [Product] in one hand and her phone in the other to record. She smiles at the camera and says, casually, 'I seriously love how this fits into my morning routine — it's made everything faster.' The product and her face are clearly visible, natural morning light, subtle camera shake, no phone or reflections visible in frame. 8 seconds, vertical 9:16, ambient sound only.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [240, -656],
+      "id": "097f76e8-1174-4970-8169-fc82cdefbf8c",
+      "name": "Agente — Gerar Prompt de Vídeo (Veo)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/veo/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": \"{{ $json.output.replace(/\\r?\\n|\\r/g, ' ').replace(/\"/g, '').replace(/[“”]/g, '') }}\",\n  \"imageUrls\": [\"{{ $('Buscar Próxima Tarefa (Status: Ready)').item.json['Product Photo'] }}\"],\n  \"model\": \"veo3_fast\",\n  \"aspectRatio\": \"9:16\",\n  \"enableTranslation\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [512, -656],
+      "id": "207d1ef1-cb29-45a3-a47a-6ca61f99a7cb",
+      "name": "KIE.ai — Gerar Vídeo (Veo 3.1)",
+      "credentials": {
+        "httpHeaderAuth": { "id": "SiSYF54ok1YtEZ44", "name": "KIE API Account" }
+      }
+    },
+    {
+      "parameters": { "amount": 10 },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [656, -656],
+      "id": "5162e52d-a2ab-47c3-aaa7-6f0d3c4e47a6",
+      "name": "Aguardar (Veo)",
+      "webhookId": "b049e4b3-7d34-4fec-afc9-185d3a9764fa"
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/veo/record-info",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [{ "name": "taskId", "value": "={{ $json.data.taskId }}" }] },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, -656],
+      "id": "65f9c385-123a-4550-9170-c10446119f2d",
+      "name": "Verificar Status (Veo)",
+      "credentials": {
+        "httpHeaderAuth": { "id": "SiSYF54ok1YtEZ44", "name": "KIE API Account" }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            { "id": "8a2caa94-db0d-4141-ab47-c803e69db7c9", "leftValue": "={{ $json.data.response }}", "rightValue": "success", "operator": { "type": "object", "operation": "notExists", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [944, -656],
+      "id": "7e7cdd22-5240-4308-9041-efaff4ca8fc2",
+      "name": "Vídeo Ainda Processando?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "={{ $env.UGC_SHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Sheet1" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "No": "={{ $('Buscar Próxima Tarefa (Status: Ready)').item.json.No }}",
+            "Status": "Finished",
+            "Finished Video": "={{ JSON.parse($('Verificar Status (Veo)').item.json.data.resultJson).resultUrls[0] }}"
+          },
+          "matchingColumns": ["No"]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1120, -656],
+      "id": "5ecad2a9-f8b3-4e02-ad3f-189ebf003bd6",
+      "name": "Atualizar Planilha (Veo — Finalizado)",
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "vjJ9PbCDOkVNZZRJ", "name": "Google Sheets account" }
+      }
+    },
+
+    // ─── ESTRATÉGIA B: NANO BANANA + VEO ────────────────────────────────────────
+
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Product: {{ $json.Product }}\n\nImage Setting: {{ $json['Video Setting'] }}",
+        "options": {
+          "systemMessage": "=## System Prompt: Hyper-Realistic UGC Photography Prompt Generator\n\nYou are an **expert in hyper-realistic user-generated content (UGC) photography**. Your role is to **generate a detailed image prompt** — not the image itself — that an image generation model can use to create a **highly authentic selfie-style photo** of a human influencer holding a product.\n\nYou will receive:\n- A **product photo** (must not be changed or altered in any way)\n- A **specific setting or scene description**\n\nGenerate a written prompt instructing the model to create an image where a real human naturally holds the exact provided product while taking a selfie. The phone must **not appear** in the image itself.\n\n---\n\n### Prompt Guidelines\n\n**Human Realism**: lifelike skin texture and tone, slight natural asymmetries, visible hand detail (fingernails, natural grip).\n\n**Product Accuracy**: the product must be identical to the provided photo — unmodified, unenhanced, true to source.\n\n**Composition & Perspective**: selfie-style, product prominent in foreground slightly angled toward camera, person's face visible (smiling or candid), natural eye contact with viewer.\n\n**Lighting & Environment**: natural high-quality lighting (daylight or golden hour), authentic indoor/outdoor setting matching the given scene.\n\n**Authentic Details**: subtle imperfections — stray hairs, casual attire, natural posture, everyday realism rather than a posed studio shot.\n\n**Technical Style — explicitly avoid**: visible phones, selfie sticks, camera reflections, anything artificial or overly edited. Maintain sharp focus on both human and product, with shallow depth of field for a relatable cinematic look.\n\n---\n\n### Output Instructions\nReturn **only the written image prompt as plain text** — no explanation, no preamble, no markdown, no code fences. The prompt must fully describe the scene for a text-to-image model while keeping the provided product completely unchanged."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [240, -416],
+      "id": "8186a7b5-6c3e-470d-b426-2440963561e9",
+      "name": "Agente — Gerar Prompt de Imagem"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"google/nano-banana-edit\",\n  \"input\": {\n    \"prompt\": \"{{ $json.output.replace(/\\r?\\n|\\r/g, ' ') }}\",\n    \"image_urls\": [\"{{ $('Buscar Próxima Tarefa (Status: Ready)').item.json['Product Photo'] }}\"],\n    \"output_format\": \"png\",\n    \"image_size\": \"9:16\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [512, -416],
+      "id": "7b53c009-c191-4f1a-95dc-9a1b83dec993",
+      "name": "KIE.ai — Gerar Imagem (Nano Banana)",
+      "credentials": {
+        "httpHeaderAuth": { "id": "SiSYF54ok1YtEZ44", "name": "KIE API Account" }
+      }
+    },
+    {
+      "parameters": { "amount": 10 },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [656, -416],
+      "id": "9bbfae06-327e-4cbf-a2bd-dfaaf446fff1",
+      "name": "Aguardar (Imagem)",
+      "webhookId": "47b6b21f-7d2c-42fd-aa19-c20ad7dc1765"
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/jobs/recordInfo",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [{ "name": "taskId", "value": "={{ $json.data.taskId }}" }] },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, -416],
+      "id": "66ee490a-7dae-4b3e-9e0a-beda92d0fb40",
+      "name": "Verificar Status (Imagem)",
+      "credentials": {
+        "httpHeaderAuth": { "id": "SiSYF54ok1YtEZ44", "name": "KIE API Account" }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            { "id": "b4ea379e-3541-4d2b-9421-f0c962c8d5e8", "leftValue": "={{ $json.data.state }}", "rightValue": "success", "operator": { "type": "string", "operation": "equals" } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [944, -416],
+      "id": "24b8250a-857c-46bf-b639-25bb322296b1",
+      "name": "Imagem Pronta?"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": { "__rl": true, "value": "chatgpt-4o-latest", "mode": "list", "cachedResultName": "CHATGPT-4O-LATEST" },
+        "text": "Describe what is in the image. Describe the environment and the human who is the focus of the image, as well as what the human is holding.",
+        "imageUrls": "={{ JSON.parse($json.data.resultJson).resultUrls[0] }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [1120, -416],
+      "id": "46ee3d76-ad1e-4097-80aa-34af67b573a9",
+      "name": "GPT-4o Vision — Descrever Imagem Gerada",
+      "credentials": {
+        "openAiApi": { "id": "yWkFMwOwuEEU2cnu", "name": "OpenAI account" }
+      }
+    },
+
+    // ─── ESTRATÉGIA C: SORA ──────────────────────────────────────────────────────
+
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Product: {{ $('Buscar Próxima Tarefa (Status: Ready)').item.json.Product }}\n\nProduct ICP: {{ $('Buscar Próxima Tarefa (Status: Ready)').item.json.ICP }}\n\nProduct Features: {{ $('Buscar Próxima Tarefa (Status: Ready)').item.json['Product Features'] }}\n\nVideo Setting: {{ $('Buscar Próxima Tarefa (Status: Ready)').item.json['Video Setting'] }}",
+        "options": {
+          "systemMessage": "=# System Prompt: UGC Selfie Video Generation (8 Seconds) — Sora 2\n\nYou are an **expert UGC video creator** generating prompts for **Sora 2** (image-to-video). Follow the same structure used for Veo: selfie framing, ICP-driven persona, natural lighting, authentic imperfections, 1–2 casual spoken lines about a product feature, phone never visible, no overlays or watermarks, 8 seconds, vertical 9:16.\n\nReturn **only the final plain-text prompt** — no explanation, no preamble, no markdown, no code fences."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [240, 16],
+      "id": "04411096-6986-4742-b3a9-2894db5bf78f",
+      "name": "Agente — Gerar Prompt de Vídeo (Sora)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"sora-2-image-to-video\",\n  \"input\": {\n    \"prompt\": \"{{ $json.output.replace(/\\r?\\n|\\r/g, ' ').replace(/\"/g, '').replace(/[“”]/g, '') }}\",\n    \"image_urls\": [\"{{ $('Buscar Próxima Tarefa (Status: Ready)').item.json['Product Photo'] }}\"],\n    \"aspect_ratio\": \"portrait\",\n    \"n_frames\": \"10\",\n    \"remove_watermark\": true\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [512, 16],
+      "id": "97c623af-0293-419e-a734-8697a439d715",
+      "name": "KIE.ai — Gerar Vídeo (Sora 2)",
+      "credentials": {
+        "httpHeaderAuth": { "id": "SiSYF54ok1YtEZ44", "name": "KIE API Account" }
+      }
+    },
+    {
+      "parameters": { "amount": 10 },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [656, 16],
+      "id": "ed415483-c45d-4598-a294-299148a765a0",
+      "name": "Aguardar (Sora)",
+      "webhookId": "47b6b21f-7d2c-42fd-aa19-c20ad7dc1765"
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/jobs/recordInfo",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [{ "name": "taskId", "value": "={{ $json.data.taskId }}" }] },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, 16],
+      "id": "b3ed0bd5-b30b-433d-aafa-c9eb406f091b",
+      "name": "Verificar Status (Sora)",
+      "credentials": {
+        "httpHeaderAuth": { "id": "SiSYF54ok1YtEZ44", "name": "KIE API Account" }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            { "id": "b4ea379e-3541-4d2b-9421-f0c962c8d5e8", "leftValue": "={{ $json.data.state }}", "rightValue": "success", "operator": { "type": "string", "operation": "equals" } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [944, 16],
+      "id": "12d0c301-dc15-4e08-9e38-14eedba5a295",
+      "name": "Vídeo Pronto? (Sora)"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "={{ $env.UGC_SHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Sheet1" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "No": "={{ $('Buscar Próxima Tarefa (Status: Ready)').item.json.No }}",
+            "Status": "Finished",
+            "Finished Video": "={{ JSON.parse($('Verificar Status (Sora)').item.json.data.resultJson).resultUrls[0] }}"
+          },
+          "matchingColumns": ["No"]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1120, 16],
+      "id": "update-sheet-sora",
+      "name": "Atualizar Planilha (Sora — Finalizado)",
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "vjJ9PbCDOkVNZZRJ", "name": "Google Sheets account" }
+      }
+    },
+
+    {
+      "parameters": {
+        "content": "## Capturar Dados do Produto\nFila de tarefas lida via Google Sheets — apenas linhas com Status = Ready são processadas.",
+        "height": 224,
+        "width": 528,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-400, -720],
+      "id": "5219341e-ea01-4be7-8c26-954f3510e1fd",
+      "name": "Sticky Note — Captura de Dados"
+    },
+    {
+      "parameters": { "content": "## Estratégia A — Veo 3.1 direto", "height": 224, "width": 1168, "color": 4 },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [144, -720],
+      "id": "356269e8-a3e5-40b2-a6d2-022a8bd541f3",
+      "name": "Sticky Note — Estratégia A"
+    },
+    {
+      "parameters": { "content": "## Estratégia B — Nano Banana + Veo 3.1\nGera imagem de referência primeiro, descreve via Vision, e usa a descrição para reforçar consistência no prompt de vídeo.", "height": 416, "width": 1168, "color": 5 },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [144, -480],
+      "id": "24e98bf0-7631-4a4d-a082-a4c13631d468",
+      "name": "Sticky Note — Estratégia B"
+    },
+    {
+      "parameters": { "content": "## Estratégia C — Sora 2", "height": 224, "width": 1168, "color": 6 },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [144, -48],
+      "id": "40c1d8c6-942d-4c3d-8268-800d43590d57",
+      "name": "Sticky Note — Estratégia C"
+    },
+    {
+      "parameters": {
+        "content": "# Setup\n\n### 1. Planilha de controle\nCopie o template e configure o ID em `UGC_SHEET_ID`. Schema completo em `docs/google-sheet-schema.md`.\n\n### 2. OpenRouter\nConfigure a credencial para o modelo GPT-5-mini usado pelos agentes de prompt.\n\n### 3. KIE.ai\nAdicione a chave de API em todos os nós HTTP Request que chamam `api.kie.ai`.\n\n### 4. OpenAI\nO nó de análise de imagem (Estratégia B) usa GPT-4o Vision — configure a credencial OpenAI.\n\n### 5. Teste\nPopule a planilha com uma linha de teste por estratégia (`Status: Ready`) e ative o fluxo.",
+        "height": 656,
+        "width": 528
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-400, -480],
+      "id": "294b9d3a-51db-4a9e-845f-d7c62f803ca2",
+      "name": "Sticky Note — Setup"
+    }
+  ],
+
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": { "main": [[{ "node": "Buscar Próxima Tarefa (Status: Ready)", "type": "main", "index": 0 }]] },
+    "Buscar Próxima Tarefa (Status: Ready)": { "main": [[{ "node": "Roteamento por Estratégia (Model)", "type": "main", "index": 0 }]] },
+    "Roteamento por Estratégia (Model)": {
+      "main": [
+        [{ "node": "Agente — Gerar Prompt de Vídeo (Veo)", "type": "main", "index": 0 }],
+        [{ "node": "Agente — Gerar Prompt de Imagem", "type": "main", "index": 0 }],
+        [{ "node": "Agente — Gerar Prompt de Vídeo (Sora)", "type": "main", "index": 0 }]
+      ]
+    },
+
+    "Agente — Gerar Prompt de Vídeo (Veo)": { "main": [[{ "node": "KIE.ai — Gerar Vídeo (Veo 3.1)", "type": "main", "index": 0 }]] },
+    "KIE.ai — Gerar Vídeo (Veo 3.1)": { "main": [[{ "node": "Aguardar (Veo)", "type": "main", "index": 0 }]] },
+    "Aguardar (Veo)": { "main": [[{ "node": "Verificar Status (Veo)", "type": "main", "index": 0 }]] },
+    "Verificar Status (Veo)": { "main": [[{ "node": "Vídeo Ainda Processando?", "type": "main", "index": 0 }]] },
+    "Vídeo Ainda Processando?": {
+      "main": [
+        [{ "node": "Aguardar (Veo)", "type": "main", "index": 0 }],
+        [{ "node": "Atualizar Planilha (Veo — Finalizado)", "type": "main", "index": 0 }]
+      ]
+    },
+
+    "Agente — Gerar Prompt de Imagem": { "main": [[{ "node": "KIE.ai — Gerar Imagem (Nano Banana)", "type": "main", "index": 0 }]] },
+    "KIE.ai — Gerar Imagem (Nano Banana)": { "main": [[{ "node": "Aguardar (Imagem)", "type": "main", "index": 0 }]] },
+    "Aguardar (Imagem)": { "main": [[{ "node": "Verificar Status (Imagem)", "type": "main", "index": 0 }]] },
+    "Verificar Status (Imagem)": { "main": [[{ "node": "Imagem Pronta?", "type": "main", "index": 0 }]] },
+    "Imagem Pronta?": {
+      "main": [
+        [{ "node": "GPT-4o Vision — Descrever Imagem Gerada", "type": "main", "index": 0 }],
+        [{ "node": "Aguardar (Imagem)", "type": "main", "index": 0 }]
+      ]
+    },
+    "GPT-4o Vision — Descrever Imagem Gerada": { "main": [[{ "node": "Agente — Gerar Prompt de Vídeo (Veo)", "type": "main", "index": 0 }]] },
+
+    "Agente — Gerar Prompt de Vídeo (Sora)": { "main": [[{ "node": "KIE.ai — Gerar Vídeo (Sora 2)", "type": "main", "index": 0 }]] },
+    "KIE.ai — Gerar Vídeo (Sora 2)": { "main": [[{ "node": "Aguardar (Sora)", "type": "main", "index": 0 }]] },
+    "Aguardar (Sora)": { "main": [[{ "node": "Verificar Status (Sora)", "type": "main", "index": 0 }]] },
+    "Verificar Status (Sora)": { "main": [[{ "node": "Vídeo Pronto? (Sora)", "type": "main", "index": 0 }]] },
+    "Vídeo Pronto? (Sora)": {
+      "main": [
+        [{ "node": "Atualizar Planilha (Sora — Finalizado)", "type": "main", "index": 0 }],
+        [{ "node": "Aguardar (Sora)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}
